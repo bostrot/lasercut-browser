@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kerf · Laser Library</title>
+<style>
+:root{
+  --bg:#f6f3ee; --panel:#fffdf9; --ink:#1f1a14; --muted:#7a6f62; --line:#e6dfd4;
+  --accent:#e2531c; --accent-ink:#fff; --chip:#efe9df; --thumb:#ffffff; --shadow:0 1px 2px rgba(40,30,20,.06),0 6px 18px rgba(40,30,20,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#16130f; --panel:#1f1b16; --ink:#f1ebe2; --muted:#a5998a; --line:#332c24;
+  --accent:#ff6a2b; --accent-ink:#1a0f08; --chip:#2a241d; --thumb:#f4f1ec; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,input{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.wrap{max-width:1500px;margin:0 auto;padding:0 20px}
+.top{display:flex;align-items:center;gap:18px;padding:14px 0 10px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:750;font-size:19px;letter-spacing:-.02em;white-space:nowrap;cursor:pointer}
+.logo svg{width:26px;height:26px}
+.stats{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.search{flex:1;position:relative}
+.search input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:15.5px;outline:none;box-shadow:var(--shadow)}
+.search input:focus{border-color:var(--accent)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 0 12px}
+select,.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 10px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip{border:1px solid transparent;background:var(--chip);border-radius:999px;padding:4px 10px;cursor:pointer;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
+.chip small{opacity:.6;margin-left:4px;text-transform:none}
+label.tog{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer}
+.spacer{flex:1}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;scrollbar-width:thin;mask-image:linear-gradient(90deg,#000 94%,transparent)}
+.cat{flex:none;display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel);border-radius:11px;padding:6px 11px 6px 9px;cursor:pointer;white-space:nowrap;font-size:13px;transition:border-color .12s,background .12s}
+.cat:hover{border-color:var(--muted)}
+.cat .ic{font-size:16px;line-height:1}
+.cat .n{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.cat.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.cat.on .n{color:inherit;opacity:.75}
+.pcats{display:flex;flex-wrap:wrap;gap:6px}
+.pcats .cat{padding:3px 9px 3px 7px;font-size:12px}
+.info{color:var(--muted);padding:14px 0 8px;font-size:13px;min-height:20px}
+.info b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;padding-bottom:40px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s,border-color .12s;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.thumb{aspect-ratio:4/3;background:var(--thumb);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.thumb img{width:100%;height:100%;object-fit:contain;padding:6px}
+.ph{color:#9a8f80;font-weight:700;font-size:22px;letter-spacing:.06em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ph svg{width:38px;opacity:.5}
+.dup{position:absolute;top:8px;right:8px;background:rgba(20,15,10,.72);color:#fff;font-size:11px;padding:2px 7px;border-radius:99px}
+.meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-weight:620;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.sub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exts{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
+.e{font-size:10.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:5px;background:var(--chip);color:var(--muted)}
+.e.dxf,.e.svg{background:color-mix(in srgb,var(--accent) 18%,var(--chip));color:var(--ink)}
+.more{display:flex;justify-content:center;padding:10px 0 50px;color:var(--muted)}
+/* modal */
+dialog{border:0;padding:0;border-radius:18px;background:var(--panel);color:var(--ink);width:min(1180px,96vw);max-height:92vh;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(15,10,5,.55);backdrop-filter:blur(3px)}
+.m{display:grid;grid-template-columns:1.25fr 1fr;max-height:92vh}
+.m-left{background:var(--thumb);display:flex;align-items:center;justify-content:center;min-height:420px;position:relative}
+.m-left img{max-width:100%;max-height:78vh;object-fit:contain;padding:18px}
+.m-right{padding:22px 24px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.m-right h2{margin:0;font-size:21px;line-height:1.2;letter-spacing:-.01em;padding-right:30px;word-break:break-word}
+.path{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);word-break:break-all}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.files{border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:300px}
+.f{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.f:last-child{border-bottom:0}
+.f:hover,.f.sel{background:var(--chip)}
+.f .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.f .fs{color:var(--muted);font-size:12px;white-space:nowrap}
+.f .rv{opacity:0;border:0;background:none;cursor:pointer;color:var(--accent);font-size:12px;padding:0}
+.f:hover .rv{opacity:1}
+.close{position:absolute;top:14px;right:16px;border:0;background:var(--chip);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;z-index:2}
+.sim{grid-column:1/-1;padding:18px 24px 24px;border-top:1px solid var(--line)}
+.sim h3{margin:0 0 4px;font-size:15px}
+.sim .why{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+.sim .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:0}
+.sim .meta{padding:7px 9px 9px}
+.sim .name{font-size:12.5px}
+.copies{font-size:12.5px;color:var(--muted)}
+.copies a{color:var(--accent);cursor:pointer;text-decoration:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+@media (max-width:860px){
+  .top{flex-wrap:wrap}.stats{display:none}.search{flex-basis:100%;order:3}
+  .m{grid-template-columns:1fr;overflow:auto}.m-left{min-height:260px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="logo" onclick="reset()">
+        <svg viewBox="0 0 32 32" fill="none"><rect x="3" y="3" width="26" height="26" rx="7" fill="var(--accent)"/><path d="M9 23 L23 9" stroke="var(--accent-ink)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 3"/><circle cx="23" cy="9" r="2.6" fill="var(--accent-ink)"/></svg>
+        Kerf
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search designs… try “christmas lamp”, “reloj”, “dino puzzle”" autocomplete="off" autofocus>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="filters">
+      <select id="pack"><option value="">All packs</option></select>
+      <div id="extchips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <span class="spacer"></span>
+      <label class="tog"><input type="checkbox" id="dupes"> show duplicates</label>
+      <select id="sort"><option value="">Best match</option><option value="name">A → Z</option><option value="random">Shuffle</option></select>
+      <button class="btn primary" onclick="surprise()">✦ Surprise me</button>
+    </div>
+    <div class="cats" id="cats"></div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="info" id="info"></div>
+  <div class="grid" id="grid"></div>
+  <div class="more" id="more"></div>
+</main>
+
+<dialog id="dlg"><div id="dlgbody"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtSize = b => b > 1e9 ? (b/1e9).toFixed(1)+' GB' : b > 1e6 ? (b/1e6).toFixed(1)+' MB' : b > 1e3 ? Math.round(b/1e3)+' KB' : b+' B';
+const fmtN = n => Number(n).toLocaleString();
+const PH = ext => `<div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>${esc(ext||'?')}</div>`;
+const MAIN_EXTS = ['dxf','svg','cdr','ai','eps','pdf','dwg','stl','lbrn','skp'];
+
+let state = {q:'', pack:'', ext:'', cat:'', dupes:false, sort:''};
+let offset = 0, total = 0, loading = false, reqId = 0;
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function card(p, small){
+  const exts = p.exts.split(' ').filter(Boolean);
+  const shown = exts.filter(e => MAIN_EXTS.includes(e)).concat(exts.filter(e => !MAIN_EXTS.includes(e))).slice(0, small ? 3 : 6);
+  const firstVec = exts.find(e => MAIN_EXTS.includes(e)) || exts[0];
+  return `<div class="card" data-id="${p.id}">
+    <div class="thumb"><img loading="lazy" src="/thumb/p/${p.id}" alt="" onerror="this.parentNode.insertAdjacentHTML('beforeend', PH('${esc(firstVec||'')}'));this.remove()">
+      ${p.dups > 1 && !small ? `<span class="dup" title="Identical copies in other packs">×${p.dups}</span>` : ''}</div>
+    <div class="meta"><div class="name" title="${esc(p.name)}">${esc(p.name)}</div>
+      ${small ? '' : `<div class="sub" title="${esc(p.dir)}">${esc(p.pack)} · ${p.files} file${p.files==1?'':'s'} · ${fmtSize(p.size)}</div>`}
+      <div class="exts">${shown.map(e => `<span class="e ${esc(e)}">${esc(e)}</span>`).join('')}</div></div></div>`;
+}
+
+function qs(extra){ const u = new URLSearchParams({q:state.q, cat:state.cat, pack:state.pack, ext:state.ext, dupes:state.dupes?'1':'', sort:state.sort, ...extra}); for (const [k,v] of [...u]) if(!v) u.delete(k); if(state.dupes) u.set('dupes','true'); return u.toString(); }
+
+async function load(reset){
+  if (reset){ offset = 0; $('#grid').innerHTML=''; window.scrollTo({top:0}); }
+  if (loading && !reset) return;
+  loading = true; const my = ++reqId;
+  const r = await fetch('/api/search?' + qs({offset, limit:60})).then(r => r.json());
+  if (my !== reqId) return;
+  loading = false; total = r.total;
+  $('#grid').insertAdjacentHTML('beforeend', r.items.map(p => card(p)).join(''));
+  offset += r.items.length;
+  const syn = (r.expanded||[]).filter(a => a.length > 1).map(a => `<b>${esc(a[0])}</b> ≈ ${a.slice(1,6).map(esc).join(', ')}`).join(' · ');
+  $('#info').innerHTML = `<b>${fmtN(total)}</b> project${total==1?'':'s'}${state.q?` for “${esc(state.q)}”`:''}${state.cat?` in ${esc(catLabel(state.cat))}`:''}${syn ? ` <span style="margin-left:10px">also matching: ${syn}</span>`:''}`;
+  $('#more').textContent = offset < total ? 'Loading more…' : (total ? '— end —' : 'Nothing found. Try another word, or a Spanish/Portuguese one.');
+  writeHash();
+}
+
+function writeHash(pid){
+  const h = qs({}); const p = pid ?? (dlg.open ? dlg.dataset.pid : '');
+  history.replaceState(null, '', '#' + h + (p ? (h?'&':'') + 'p=' + p : ''));
+}
+
+new IntersectionObserver(es => { if (es[0].isIntersecting && offset < total && !loading) load(false); }, {rootMargin:'800px'}).observe($('#more'));
+
+let deb; $('#q').addEventListener('input', e => { clearTimeout(deb); deb = setTimeout(() => { state.q = e.target.value.trim(); load(true); }, 180); });
+$('#pack').onchange = e => { state.pack = e.target.value; load(true); };
+$('#dupes').onchange = e => { state.dupes = e.target.checked; load(true); };
+$('#sort').onchange = e => { state.sort = e.target.value; load(true); };
+$('#grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) openProject(+c.dataset.id); });
+
+function reset(){ state = {q:'',pack:'',ext:'',cat:'',dupes:false,sort:''}; $('#q').value=''; $('#pack').value=''; $('#dupes').checked=false; $('#sort').value=''; renderChips(); renderCats(); load(true); }
+
+async function surprise(){
+  const r = await fetch('/api/search?' + new URLSearchParams({sort:'random', limit:1, q:state.q, cat:state.cat, pack:state.pack, ext:state.ext})).then(r => r.json());
+  if (r.items[0]) openProject(r.items[0].id);
+}
+
+let catList = [];
+const catLabel = slug => { const c = catList.find(c => c.slug === slug); return c ? c.icon + ' ' + c.label : slug; };
+const fmtK = n => n >= 1000 ? (n/1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
+function renderCats(){
+  $('#cats').innerHTML = `<span class="cat ${state.cat?'':'on'}" data-cat=""><span class="ic">✦</span>All</span>` +
+    catList.filter(c => c.count > 0).map(c => `<span class="cat ${state.cat===c.slug?'on':''}" data-cat="${esc(c.slug)}" title="${fmtN(c.count)} projects"><span class="ic">${c.icon}</span>${esc(c.label)}<span class="n">${fmtK(c.count)}</span></span>`).join('');
+  const on = $('#cats .cat.on'); if (on) on.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+function setCat(slug){ state.cat = slug; renderCats(); load(true); }
+$('#cats').addEventListener('click', e => { const c = e.target.closest('.cat'); if (c) setCat(c.dataset.cat); });
+
+let extList = [];
+function renderChips(){
+  $('#extchips').innerHTML = extList.map(x => `<span class="chip ${state.ext===x.ext?'on':''}" data-ext="${esc(x.ext)}">${esc(x.ext)}<small>${fmtN(x.count)}</small></span>`).join('');
+}
+$('#extchips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; state.ext = state.ext === c.dataset.ext ? '' : c.dataset.ext; renderChips(); load(true); });
+
+// ---------- detail
+const dlg = $('#dlg');
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener('close', () => { delete dlg.dataset.pid; writeHash(''); });
+
+async function openProject(id){
+  const p = await fetch('/api/project/' + id).then(r => r.json());
+  dlg.dataset.pid = id;
+  const files = p.file_list;
+  const vecFirst = (a,b) => (b.preview - a.preview);
+  $('#dlgbody').innerHTML = `
+  <div class="m">
+    <div class="m-left"><img id="big" src="/thumb/p/${p.id}" onerror="this.outerHTML=PH('no preview')"></div>
+    <div class="m-right">
+      <button class="close" onclick="dlg.close()" aria-label="Close">×</button>
+      <h2>${esc(p.name)}</h2>
+      <div class="path" title="Click to copy full path" style="cursor:copy" onclick="copyPath('${esc(p.root)}/${esc(p.dir).replace(/'/g,"\\'")}')">${esc(p.dir)}</div>
+      ${p.categories.length ? `<div class="pcats">${p.categories.map(c => `<span class="cat" onclick="dlg.close();setCat('${esc(c.slug)}')" title="Browse ${esc(c.label)}"><span class="ic">${c.icon}</span>${esc(c.label)}</span>`).join('')}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" onclick="openOnDisk({project:${p.id}})">📂 Open folder</button>
+        <button class="btn" onclick="copyPath('${esc(p.root)}/${esc(p.dir).replace(/'/g,"\\'")}')">Copy path</button>
+        <button class="btn" onclick="searchFor('${esc(p.pack).replace(/'/g,"\\'")}', true)">More from ${esc(p.pack)}</button>
+      </div>
+      <div style="color:var(--muted);font-size:12.5px">${files.length} files · ${fmtSize(p.size)} · click a file to preview, ↗ to reveal it in Finder</div>
+      <div class="files">${files.map(f => `
+        <div class="f" data-fid="${f.id}" data-prev="${f.preview?1:0}">
+          <span class="e ${esc(f.ext)}">${esc(f.ext||'—')}</span>
+          <span class="fn" title="${esc(f.rel)}">${esc(f.name)}</span>
+          <span class="fs">${fmtSize(f.size)}</span>
+          <button class="rv" title="Reveal in Finder" onclick="event.stopPropagation();openOnDisk({file:${f.id}})">↗ reveal</button>
+        </div>`).join('')}</div>
+      ${p.copies.length ? `<div class="copies">Identical copy also in: ${p.copies.slice(0,6).map(c => `<a onclick="openProject(${c.id})">${esc(c.pack)}</a>`).join(', ')}${p.copies.length>6?' …':''}</div>` : ''}
+    </div>
+    <div class="sim"><h3>Similar projects</h3><div class="why" id="why">finding…</div><div class="grid" id="simgrid"></div></div>
+  </div>`;
+  if (!dlg.open) dlg.showModal();
+  dlg.querySelector('.m-right').scrollTop = 0; dlg.scrollTop = 0;
+  writeHash(id);
+  dlg.querySelectorAll('.f').forEach(el => el.onclick = () => {
+    dlg.querySelectorAll('.f.sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+    const holder = $('.m-left');
+    if (el.dataset.prev === '1') holder.innerHTML = `<img id="big" src="/thumb/f/${el.dataset.fid}" onerror="this.outerHTML=PH('no preview')">`;
+    else holder.innerHTML = PH(el.querySelector('.e').textContent);
+  });
+  const s = await fetch(`/api/project/${id}/similar`).then(r => r.json());
+  if (dlg.dataset.pid != id) return;
+  $('#why').innerHTML = s.tokens.length ? `based on: ${s.tokens.map(t => `<span class="e">${esc(t)}</span>`).join(' ')}` : 'no distinctive words in this project’s name';
+  $('#simgrid').innerHTML = s.items.map(x => card(x, true)).join('') || '<div style="color:var(--muted)">nothing similar found</div>';
+  $('#simgrid').onclick = e => { const c = e.target.closest('.card'); if (c) openProject(+c.dataset.id); };
+}
+
+function searchFor(pack){ dlg.close(); state.pack = pack; $('#pack').value = pack; load(true); }
+
+async function openOnDisk(body){
+  const r = await fetch('/api/open', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body)});
+  toast(r.ok ? 'Opened in Finder' : 'Could not open: ' + await r.text());
+}
+function copyPath(p){ navigator.clipboard.writeText(p).then(() => toast('Path copied')); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== $('#q')) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+});
+
+// ---------- boot
+(async () => {
+  const h = new URLSearchParams(location.hash.slice(1));
+  state.q = h.get('q')||''; state.pack = h.get('pack')||''; state.ext = h.get('ext')||''; state.cat = h.get('cat')||''; state.dupes = h.get('dupes')==='true'; state.sort = h.get('sort')||'';
+  $('#q').value = state.q; $('#dupes').checked = state.dupes; $('#sort').value = state.sort;
+  const s = await fetch('/api/stats').then(r => r.json());
+  $('#stats').textContent = `${fmtN(s.unique)} unique projects · ${fmtN(s.files)} files · ${fmtSize(s.bytes)}`;
+  $('#q').placeholder = `Search ${fmtN(s.unique)} designs… try “christmas lamp”, “reloj”, “dino puzzle”`;
+  $('#pack').insertAdjacentHTML('beforeend', s.packs.map(p => `<option value="${esc(p.pack)}">${esc(p.pack)} (${fmtN(p.count)})</option>`).join(''));
+  $('#pack').value = state.pack;
+  extList = s.exts.filter(x => MAIN_EXTS.includes(x.ext)); renderChips();
+  catList = s.categories; renderCats();
+  await load(true);
+  if (h.get('p')) openProject(+h.get('p'));
+})();
+</script>
+</body>
+</html>
