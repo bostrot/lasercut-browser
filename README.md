@@ -28,6 +28,10 @@ cargo run --release -- --port 9000  # other port
 - **Similar projects**: full-text (FTS5/bm25) search on the distinctive words of the project.
 - Keyboard: `/` focuses search. Search state lives in the URL, so you can bookmark it.
 
+## Demo
+
+<img width="3396" height="1980" alt="image" src="https://github.com/user-attachments/assets/e1c82b8e-6de0-4a68-9f4c-0305fe7d27d4" />
+
 ## Previews (generated lazily, cached in `data/thumbs/`)
 
 | Format | How |
