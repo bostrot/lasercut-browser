@@ -61,3 +61,7 @@ usually have a CDR/EPS sibling that is used instead.
 The server binds to 127.0.0.1 only and rejects non-localhost `Host` headers.
 
 Requires: Rust, and optionally `brew install ghostscript` for EPS/PDF/AI previews.
+
+## License
+
+MIT, see [LICENSE](LICENSE).

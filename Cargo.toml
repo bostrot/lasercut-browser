@@ -3,6 +3,7 @@ name = "lasercut-browser"
 version = "0.1.0"
 edition = "2021"
 description = "Local search + preview browser for a laser-cut file library"
+license = "MIT"
 
 [dependencies]
 anyhow = "1"
