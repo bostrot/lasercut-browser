@@ -3,6 +3,10 @@
 A small Rust webserver that indexes everything in `../` (the `extract` folder) into a SQLite
 database and gives you a searchable, previewable gallery at **http://127.0.0.1:8787**.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e1c82b8e-6de0-4a68-9f4c-0305fe7d27d4" alt="Kerf: searchable gallery of laser-cut projects with category strip, filters and previews" width="100%">
+</p>
+
 ```bash
 cd lasercut-browser
 cargo run --release                 # indexes on first start, then serves
@@ -27,10 +31,6 @@ cargo run --release -- --port 9000  # other port
   (opens it in Finder), per-file **reveal in Finder**, copy path.
 - **Similar projects**: full-text (FTS5/bm25) search on the distinctive words of the project.
 - Keyboard: `/` focuses search. Search state lives in the URL, so you can bookmark it.
-
-## Demo
-
-<img width="3396" height="1980" alt="image" src="https://github.com/user-attachments/assets/e1c82b8e-6de0-4a68-9f4c-0305fe7d27d4" />
 
 ## Previews (generated lazily, cached in `data/thumbs/`)
 
